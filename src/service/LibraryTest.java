@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 class LibraryTest {
 
     @BeforeEach
@@ -21,7 +23,7 @@ class LibraryTest {
     @Test
     void testAddNewBook() throws BookNotFoundException {
         Library.addBook("евгений онегин", "пушкин", 1833, 2);
-        Book book = Library.findBook("евгений онегин", "пушкин", 1833);
+        Book book = Library.findBookByAll("евгений онегин", "пушкин", 1833);
         Assertions.assertEquals("пушкин", book.getAuthor());
         Assertions.assertEquals("евгений онегин", book.getTitle());
         Assertions.assertEquals(1, Library.getBooks().size());
@@ -32,16 +34,44 @@ class LibraryTest {
     }
 
     @Test
-    void testFindBookSuccess() throws BookNotFoundException {
+    void testFindBookByAllSuccess() throws BookNotFoundException {
         Library.addBook("евгений онегин", "пушкин", 1833, 2);
-        Book book = Library.findBook("евгений онегин", "пушкин", 1833);
+        Book book = Library.findBookByAll("евгений онегин", "пушкин", 1833);
         Assertions.assertNotNull(book);
         Assertions.assertEquals(2, book.getTotalCopies());
     }
 
     @Test
-    void testFindBookNotFound() throws BookNotFoundException {
-        Assertions.assertThrows(BookNotFoundException.class, () -> Library.findBook("", "пушкин", 1833));
+    void testFindBookByAllNotFound() throws BookNotFoundException {
+        Assertions.assertThrows(BookNotFoundException.class, () -> Library.findBookByAll("", "пушкин", 1833));
+    }
+
+    @Test
+    void testFindBookByTitleSuccess() throws BookNotFoundException {
+        Library.addBook("евгений онегин", "пушкин", 1833, 2);
+        List<Book> books = Library.findBookByTitle("евгений онегин");
+        Assertions.assertNotNull(books);
+        Assertions.assertEquals(1, books.size());
+    }
+
+    @Test
+    void testFindBookByTitleNotFound() throws BookNotFoundException {
+        Assertions.assertThrows(BookNotFoundException.class, () -> Library.findBookByTitle(""));
+    }
+
+    @Test
+    void testFindBookByAuthorSuccess() throws BookNotFoundException {
+        Library.addBook("евгений онегин", "пушкин", 1833, 2);
+        Library.addBook("капитанская дочка", "пушкин", 1836, 1);
+        List <Book> books = Library.findBookByAuthor("пушкин");
+        Assertions.assertNotNull(books);
+        Assertions.assertEquals(2, books.size());
+
+    }
+
+    @Test
+    void testFindBookByAuthorNotFound() throws BookNotFoundException {
+        Assertions.assertThrows(BookNotFoundException.class, () -> Library.findBookByAuthor("лермонтов"));
     }
 
     @Test

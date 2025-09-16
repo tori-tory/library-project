@@ -75,7 +75,7 @@ public class Library {
 
     public static void addBook(String title, String author, int year, int totalCopies) {
         try {
-            Book newBook = findBook(title, author, year);
+            Book newBook = findBookByAll(title, author, year);
             // книга уже есть - увеличим количество экземпляров
             newBook.setTotalCopies(newBook.getTotalCopies() + totalCopies);
             newBook.setAvailableCopies(newBook.getAvailableCopies() + totalCopies);
@@ -87,7 +87,7 @@ public class Library {
     }
 
     // Поиск книг по: названию, автору, году
-    public static Book findBook(String title, String author, int year) throws BookNotFoundException {
+    public static Book findBookByAll(String title, String author, int year) throws BookNotFoundException {
         for (Book book : books.values()) {
             if (book.getTitle().equalsIgnoreCase(title) &&
                     book.getAuthor().equalsIgnoreCase(author) &&
@@ -96,6 +96,27 @@ public class Library {
             }
         }
         throw new BookNotFoundException(); // не нашли ни одной книги
+    }
+
+    public static List<Book> findBookByTitle(String title) throws BookNotFoundException {
+        List<Book> bookList = books.values().stream()
+                .filter(book -> book.getTitle().toLowerCase()
+                        .contains(title.toLowerCase())).toList();
+
+        if (bookList.isEmpty()) {
+            throw new BookNotFoundException(); // не нашли ни одной книги
+        }
+        return bookList;
+    }
+    public static List<Book> findBookByAuthor(String author) throws BookNotFoundException {
+        List<Book> bookList = books.values().stream()
+                .filter(book -> book.getAuthor().toLowerCase()
+                        .contains(author.toLowerCase())).toList();
+
+        if (bookList.isEmpty()) {
+            throw new BookNotFoundException(); // не нашли ни одной книги
+        }
+        return bookList;
     }
 
     public static void addUser(String name, String email) throws UserAlreadyExists{

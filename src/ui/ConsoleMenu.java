@@ -7,6 +7,7 @@ import model.book.Book;
 import model.user.User;
 import service.Library;
 
+import java.util.List;
 import java.util.Scanner;
 
 public class ConsoleMenu {
@@ -21,7 +22,9 @@ public class ConsoleMenu {
             switch (choice) {
                 case "1" -> addBook();
                 case "2" -> showBooks();
-                case "3" -> findBook();
+                case "3" -> findBookByAll();
+                case "31" -> findBookByTitle();
+                case "32" -> findBookByAuthor();
                 case "4" -> System.out.println("Выдать книгу");
                 case "5" -> System.out.println("Вернуть книгу");
                 case "6" -> addUser();
@@ -46,6 +49,8 @@ public class ConsoleMenu {
         System.out.println("1 - Добавить книгу");
         System.out.println("2 - Просмотр всех книг");
         System.out.println("3 - Поиск книг по: названию, автору, году");
+        System.out.println("31 - Поиск книги по названию");
+        System.out.println("32 - Поиск книг по автору");
         System.out.println("4 - Выдать книгу");
         System.out.println("5 - Вернуть книгу");
         System.out.println("** Работа с пользователями:");
@@ -73,14 +78,38 @@ public class ConsoleMenu {
         rePrintMenu("Продолжить работу");
     }
 
-    private static void findBook() {
+    private static void findBookByAll() {
         System.out.println("Найти книгу");
         String title = stringValidate("Название");
         String author = stringValidate("Автор");
         int year = intValidate("Год");
         try {
-            Book book = Library.findBook(title, author, year);
+            Book book = Library.findBookByAll(title, author, year);
             System.out.printf("Найдено в библиотеке: %s, %s, %s\n", book.getTitle(), book.getAuthor(), book.getYear());
+        } catch (BookNotFoundException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private static void findBookByTitle() {
+        System.out.println("Найти книгу по Названию");
+
+        String title = stringValidate("Название");
+        try {
+            List<Book> book = Library.findBookByTitle(title);
+            Library.showItems(book, "Найдено в библиотеке по Названию:");
+        } catch (BookNotFoundException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private static void findBookByAuthor() {
+        System.out.println("Найти книгу по Автору");
+
+        String author = stringValidate("Автор");
+        try {
+            List<Book> book = Library.findBookByAuthor(author);
+            Library.showItems(book, "Найдено в библиотеке по Автору:");
         } catch (BookNotFoundException e) {
             System.out.println(e.getMessage());
         }
