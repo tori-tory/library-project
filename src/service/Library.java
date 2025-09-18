@@ -37,11 +37,7 @@ public class Library {
 
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(";");
-                String title = values[0];
-                String author = values[1];
-                int year = Integer.parseInt(values[2]);
-                int totalCopies = Integer.parseInt(values[3]);
-                addBook(title, author, year, totalCopies);
+                addBook(values[0], values[1], Integer.parseInt(values[2]), Integer.parseInt(values[3]));
             }
 
             System.out.println(books);
@@ -58,10 +54,8 @@ public class Library {
 
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(";");
-                String name = values[0];
-                String email = values[1];
                 try {
-                    addUser(name, email);
+                    addUser(values[0], values[1]);
                 } catch (UserAlreadyExists ignored) {
 
                 }
