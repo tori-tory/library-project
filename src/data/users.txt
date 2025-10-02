@@ -1,0 +1,3 @@
+Иванов;ivanov@mail.ru
+Петров;petrov@dpd.ru
+Сидоров;sidorov@gmail.com
