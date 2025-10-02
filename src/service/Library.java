@@ -1,7 +1,7 @@
 package service;
 
 import exception.BookNotFoundException;
-import exception.UserAlreadyExists;
+import exception.UserAlreadyExistsException;
 import exception.UserNotFoundException;
 import model.book.Book;
 import model.user.User;
@@ -56,7 +56,7 @@ public class Library {
                 String[] values = line.split(";");
                 try {
                     addUser(values[0], values[1]);
-                } catch (UserAlreadyExists ignored) {
+                } catch (UserAlreadyExistsException ignored) {
 
                 }
             }
@@ -113,7 +113,7 @@ public class Library {
         return bookList;
     }
 
-    public static void addUser(String name, String email) throws UserAlreadyExists{
+    public static void addUser(String name, String email) throws UserAlreadyExistsException {
         try {
             name = stringValidate(name);
             email = stringValidate(email);
@@ -124,7 +124,7 @@ public class Library {
 
         try {
             User newUser = findUserByName(name);
-            throw new UserAlreadyExists();
+            throw new UserAlreadyExistsException();
         } catch (UserNotFoundException e) {
             // такого пользователя не было - добавить
             User newUser = new User(name, email);

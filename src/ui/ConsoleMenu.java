@@ -1,7 +1,7 @@
 package ui;
 
 import exception.BookNotFoundException;
-import exception.UserAlreadyExists;
+import exception.UserAlreadyExistsException;
 import exception.UserNotFoundException;
 import model.book.Book;
 import model.user.User;
@@ -127,7 +127,7 @@ public class ConsoleMenu {
             Library.addUser(name, email);
             System.out.printf("Добавлен: %s, %s\n",name, email);
             rePrintMenu("Продолжить работу");
-        } catch (UserAlreadyExists e) {
+        } catch (UserAlreadyExistsException e) {
             System.out.println(e.getMessage());
         }
     }

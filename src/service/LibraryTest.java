@@ -1,7 +1,7 @@
 package service;
 
 import exception.BookNotFoundException;
-import exception.UserAlreadyExists;
+import exception.UserAlreadyExistsException;
 import exception.UserNotFoundException;
 import model.book.Book;
 import model.user.User;
@@ -75,7 +75,7 @@ class LibraryTest {
     }
 
     @Test
-    void testAddNewUser() throws UserNotFoundException, UserAlreadyExists {
+    void testAddNewUser() throws UserNotFoundException, UserAlreadyExistsException {
         Library.addUser("ларина", "larina@pushkin.com");
         Library.addUser("онегин", "onegin@pushkin.com");
         System.out.println(Library.getUsers().toString());
@@ -86,16 +86,16 @@ class LibraryTest {
     }
 
     @Test
-    void testDuplicateUser() throws UserAlreadyExists {
+    void testDuplicateUser() throws UserAlreadyExistsException {
         int size = Library.getUsers().size();
         Library.addUser("ларина", "larina@pushkin.com");
-        Assertions.assertThrows(UserAlreadyExists.class, () ->Library.addUser("ларина", "larina@pushkin.com"));
+        Assertions.assertThrows(UserAlreadyExistsException.class, () ->Library.addUser("ларина", "larina@pushkin.com"));
         Assertions.assertEquals(size + 1, Library.getUsers().size());
     }
 
 
     @Test
-    void testFindUserByIdSuccess() throws UserNotFoundException, UserAlreadyExists {
+    void testFindUserByIdSuccess() throws UserNotFoundException, UserAlreadyExistsException {
         Library.addUser("ларина", "larina@pushkin.com");
         User user = Library.findUserByName("ларина");
 
@@ -110,7 +110,7 @@ class LibraryTest {
     }
 
     @Test
-    void testFindUserByNameSuccess() throws UserNotFoundException, UserAlreadyExists {
+    void testFindUserByNameSuccess() throws UserNotFoundException, UserAlreadyExistsException {
         Library.addUser("ларина", "larina@pushkin.com");
         User user = Library.findUserByName("Ларина");
 
