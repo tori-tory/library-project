@@ -1,14 +1,21 @@
 package service;
 
+import exception.BookLoanToUserException;
+import exception.BookNotAvailableCopiesException;
 import exception.BookNotFoundException;
+import exception.LoanExceedException;
+import exception.LoanNotFoundException;
 import exception.UserAlreadyExistsException;
 import exception.UserNotFoundException;
+import model.Loan;
 import model.book.Book;
 import model.user.User;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -19,9 +26,11 @@ public class Library {
 
     private static final Map<Integer, Book> books = new HashMap<>();
     private static final Map<Integer, User> users = new HashMap<>();
+    private static List<Loan> loans = new ArrayList<>();
 
     private static final String BOOK_FILE = "src/data/books.txt";
     private static final String USER_FILE = "src/data/users.txt";
+    private static final int MAX_LOANS = 3;
 
 
     public static void uploadData() {
@@ -113,6 +122,15 @@ public class Library {
         return bookList;
     }
 
+    // Поиск книги по: ID
+    public static Book findBookById(int id) throws BookNotFoundException {
+        Book book = books.get(id);
+        if (book == null) {
+            throw new BookNotFoundException(); // выбросить исключение, если книга не найдена
+        }
+        return book;
+    }
+
     public static void addUser(String name, String email) throws UserAlreadyExistsException {
         try {
             name = stringValidate(name);
@@ -162,12 +180,98 @@ public class Library {
         }
     }
 
+    public static void showLoans(Collection<Loan> items, String header) {
+        System.out.println(header);
+        if (items.isEmpty()) {
+            System.out.println("(список пуст)");
+        } else {
+            for (Loan item : items) {
+                System.out.printf("Книга %s, %s, Читатель %s, выдана -%s, возвращена - %s\n",
+                        books.get(item.getBookId()).getTitle(),
+                        books.get(item.getBookId()).getAuthor(),
+                        users.get(item.getUserId()).getName(),
+                        item.getLoanDate().toString(),
+                        item.getReturnDate() == null ? "--" : item.getReturnDate().toString());
+            }
+        }
+    }
+
     public static Collection<Book> getBooks() {
         return books.values();
     }
 
     public static Collection<User> getUsers() {
         return users.values();
+    }
+
+    public static Collection<Loan> getLoans() {
+        return loans;
+    }
+
+    public static Collection<Loan> getLoans(int bookId, int userId) throws LoanNotFoundException {
+        List<Loan> loanList = loans.stream()
+                .filter(loan -> (bookId <= 0 || loan.getBookId() == bookId) &&
+                                      (userId <= 0 || loan.getUserId() == userId))
+                .toList();
+
+        if (loanList.isEmpty()) {
+            throw new LoanNotFoundException(); // выбросить исключение, если выдачи не найдены
+        }
+        return loanList;
+    }
+
+    public static Collection<Loan> getOverdueLoans() throws LoanNotFoundException {
+        List<Loan> loanList = loans.stream()
+                .filter(loan ->  (loan.getReturnDate() != null)
+                                    && ChronoUnit.DAYS.between(loan.getLoanDate(), LocalDate.now()) > 30)
+                .toList();
+
+        if (loanList.isEmpty()) {
+            throw new LoanNotFoundException(); // выбросить исключение, если выдачи не найдены
+        }
+        return loanList;
+    }
+
+    public static void loan(int bookId, int userId)
+            throws BookNotFoundException, UserNotFoundException, BookNotAvailableCopiesException, LoanExceedException, BookLoanToUserException {
+        Book book = findBookById(bookId);
+        User user = findUserById(userId);
+
+        Loan currentLoan = user.getCurrentLoans().stream()
+                .filter(l -> l.getBookId() == bookId&& l.getUserId() == userId )
+                .findFirst()
+                .orElse(null);
+
+        if (currentLoan != null) {
+            throw new BookLoanToUserException(); //Такая же книга уже выдана этому пользователю
+        }
+
+        if (book.getAvailableCopies() < 1) {
+            throw new BookNotAvailableCopiesException(); // Все книги выданы
+        }
+
+        if (user.getCurrentLoans().size() == MAX_LOANS) {
+            throw new LoanExceedException(); //Не больше трех штук в одни руки!
+        }
+
+        Loan loan = new Loan(bookId, userId);
+        user.getCurrentLoans().add(loan);
+        loans.add(loan);
+        book.setAvailableCopies(book.getAvailableCopies() - 1);
+    }
+
+    public static void returnBook(int bookId, int userId) throws BookNotFoundException, UserNotFoundException, LoanNotFoundException {
+        Book book = findBookById(bookId);
+        User user = findUserById(userId);
+
+        Loan loan = user.getCurrentLoans().stream()
+                .filter(l -> l.getBookId() == bookId&& l.getUserId() == userId )
+                .findFirst()
+                .orElseThrow(() -> new LoanNotFoundException());
+
+        loan.setReturnDate(LocalDate.now());
+        book.setAvailableCopies(book.getAvailableCopies() + 1);
+        user.getCurrentLoans().remove(loan);
     }
 
     public static String stringValidate(String input) {

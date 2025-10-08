@@ -1,6 +1,7 @@
 package ui;
 
 import exception.BookNotFoundException;
+import exception.LoanNotFoundException;
 import exception.UserAlreadyExistsException;
 import exception.UserNotFoundException;
 import model.book.Book;
@@ -25,11 +26,15 @@ public class ConsoleMenu {
                 case "3" -> findBookByAll();
                 case "31" -> findBookByTitle();
                 case "32" -> findBookByAuthor();
-                case "4" -> System.out.println("Выдать книгу");
-                case "5" -> System.out.println("Вернуть книгу");
+                case "4" -> loan();
+                case "5" -> returnBook();
                 case "6" -> addUser();
                 case "7" -> showUsers();
                 case "8" -> findUserById();
+                case "81" -> currentLoansByUser();
+                case "91" -> loansByUser();
+                case "92" -> loansByBook();
+                case "93" -> showOverdueLoans();
                 case "99" -> rePrintMenu("");
 
                 case "0" -> {
@@ -57,12 +62,89 @@ public class ConsoleMenu {
         System.out.println("6 - Добавить пользователя");
         System.out.println("7 - Показать всех пользователей");
         System.out.println("8 - Поиск пользователя по ID");
+        System.out.println("81 - Какие книги у пользователя по ID");
+        System.out.println("** Просмотр истории выдач:");
+        System.out.println("91 - По конкретному пользователю");
+        System.out.println("92 - По конкретной книге");
+        System.out.println("93 - Поиск просроченных выдач");
         System.out.println("0 - Выход");
     }
 
     private static void rePrintMenu(String message) {
         System.out.println(message);
         printMenu();
+    }
+
+    private static void loan() {
+        System.out.println("Выдать книгу");
+        int bookId = intValidate("ID книги");
+        int userId = intValidate("ID пользователя");
+
+        try {
+            Library.loan(bookId, userId);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private static void returnBook() {
+        System.out.println("Вернуть книгу");
+        int bookId = intValidate("ID книги");
+        int userId = intValidate("ID пользователя");
+
+        try {
+            Library.returnBook(bookId, userId);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private static void loansByUser() {
+        System.out.println("Просмотр истории выдач: По конкретному пользователю");
+        int id = intValidate("ID пользователя");
+        try {
+            User user = Library.findUserById(id);
+            //поиск всех выдач пользователя
+            Library.showLoans(Library.getLoans(
+                    -1,
+                     user.getId()),
+                    "История выдачи книг по " + user.getName());
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private static void loansByBook() {
+        System.out.println("Просмотр истории выдач: По конкретной книге");
+        int id = intValidate("ID книги");
+        try {
+            Book book = Library.findBookById(id);
+            //поиск всех выдач книги
+            Library.showLoans(Library.getLoans(
+                    book.getId(),
+                    -1),
+                    "История выдачи книги " + book.getTitle()+ ", " + book.getAuthor());
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private static void showOverdueLoans() {
+        try {
+            Library.showLoans(Library.getOverdueLoans(), "Просмотр просроченных выдач");
+        } catch (LoanNotFoundException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+    private static void currentLoansByUser() {
+        System.out.println("Сейчас читает");
+        int id = intValidate("ID пользователя");
+        try {
+            User user = Library.findUserById(id);
+            Library.showLoans(user.getCurrentLoans(), "Сейчас читает " + user.getName());
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     private static void addBook() {
