@@ -222,7 +222,7 @@ public class Library {
 
     public static Collection<Loan> getOverdueLoans() throws LoanNotFoundException {
         List<Loan> loanList = loans.stream()
-                .filter(loan ->  (loan.getReturnDate() != null)
+                .filter(loan ->  (loan.getReturnDate() == null)
                                     && ChronoUnit.DAYS.between(loan.getLoanDate(), LocalDate.now()) > 30)
                 .toList();
 
