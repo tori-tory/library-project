@@ -258,6 +258,8 @@ public class Library {
         user.getCurrentLoans().add(loan);
         loans.add(loan);
         book.setAvailableCopies(book.getAvailableCopies() - 1);
+
+        System.out.printf("Книга %s (%s) выдана читателю %s\n", book.getTitle(), book.getAuthor(), user.getName());
     }
 
     public static void returnBook(int bookId, int userId) throws BookNotFoundException, UserNotFoundException, LoanNotFoundException {

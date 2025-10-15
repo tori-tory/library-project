@@ -61,8 +61,7 @@ public class Book {
 
     @Override
     public String toString() {
-        int recNo = id;
-        return recNo + ". " + title + " (" + author + ", " + year +
+        return id + ". " + title + " (" + author + ", " + year +
                 "), всего/доступно = " + totalCopies + "/" + availableCopies;
     }
 }
