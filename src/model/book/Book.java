@@ -51,10 +51,17 @@ public class Book {
         this.availableCopies = availableCopies;
     }
 
+    public void loan() {
+        this.availableCopies--;
+    }
+
+    public void returnLoan() {
+        this.availableCopies++;
+    }
+
     @Override
     public String toString() {
-        int recNo = id;
-        return recNo + ". " + title + " (" + author + ", " + year +
+        return id + ". " + title + " (" + author + ", " + year +
                 "), всего/доступно = " + totalCopies + "/" + availableCopies;
     }
 }

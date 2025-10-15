@@ -1,6 +1,10 @@
 package service;
 
+import exception.BookLoanToUserException;
+import exception.BookNotAvailableCopiesException;
 import exception.BookNotFoundException;
+import exception.LoanExceedException;
+import exception.LoanNotFoundException;
 import exception.UserAlreadyExistsException;
 import exception.UserNotFoundException;
 import model.book.Book;
@@ -18,6 +22,7 @@ class LibraryTest {
     void clearUser() {
         Library.getBooks().clear();
         Library.getUsers().clear();
+        Library.getLoans().clear();
     }
 
     @Test
@@ -66,7 +71,6 @@ class LibraryTest {
         List <Book> books = Library.findBookByAuthor("пушкин");
         Assertions.assertNotNull(books);
         Assertions.assertEquals(2, books.size());
-
     }
 
     @Test
@@ -78,7 +82,6 @@ class LibraryTest {
     void testAddNewUser() throws UserNotFoundException, UserAlreadyExistsException {
         Library.addUser("ларина", "larina@pushkin.com");
         Library.addUser("онегин", "onegin@pushkin.com");
-        System.out.println(Library.getUsers().toString());
         User user = Library.findUserByName("Ларина");
         Assertions.assertEquals("ларина", user.getName());
         Assertions.assertEquals("larina@pushkin.com", user.getEmail());
@@ -149,6 +152,92 @@ class LibraryTest {
         Assertions.assertThrows(IllegalArgumentException.class, () -> Library.intValidate(""));
         Assertions.assertThrows(IllegalArgumentException.class, () -> Library.intValidate("  "));
         Assertions.assertThrows(IllegalArgumentException.class, () -> Library.intValidate("0"));
+    }
+
+    @Test
+    void testLoanSuccess() throws UserAlreadyExistsException, UserNotFoundException, LoanExceedException, BookLoanToUserException, BookNotFoundException, BookNotAvailableCopiesException {
+        Library.addBook("евгений онегин", "пушкин", 1833, 2);
+        Library.addUser("ларина", "larina@pushkin.com");
+        Library.addUser("онегин", "onegin@pushkin.com");
+        int userId1 = Library.findUserByName("ларина").getId();
+        int userId2 = Library.findUserByName("онегин").getId();
+        int bookId = Library.findBookByAuthor("пушкин").getFirst().getId();
+        Library.loan(bookId, userId1);
+        Library.loan(bookId, userId2);
+        Assertions.assertEquals(2, Library.getLoans().size());
+    }
+
+    @Test
+    void testLoanThrows() throws UserAlreadyExistsException, UserNotFoundException, LoanExceedException,
+            BookLoanToUserException, BookNotFoundException, BookNotAvailableCopiesException {
+        Library.addBook("евгений онегин", "пушкин", 1833, 2);
+        Library.addUser("ларина", "larina@pushkin.com");
+        Library.addUser("онегин", "onegin@pushkin.com");
+        Library.addUser("ленский", "lenski@pushkin.com");
+        int userId1 = Library.findUserByName("ларина").getId();
+        int userId2 = Library.findUserByName("онегин").getId();
+        int userId3 = Library.findUserByName("ленский").getId();
+        int bookId = Library.findBookByAuthor("пушкин").getFirst().getId();
+
+
+        Library.loan(bookId, userId1);
+        Assertions.assertThrows(BookLoanToUserException.class, () -> Library.loan(bookId, userId1));
+        Library.loan(bookId, userId2);
+        Assertions.assertThrows(BookNotAvailableCopiesException.class, () -> Library.loan(bookId, userId3));
+    }
+
+    @Test
+    void testReturnBookSuccess() throws UserAlreadyExistsException, UserNotFoundException, LoanExceedException,
+            BookLoanToUserException, BookNotFoundException, BookNotAvailableCopiesException, LoanNotFoundException {
+        Library.addBook("евгений онегин", "пушкин", 1833, 2);
+        Library.addUser("ларина", "larina@pushkin.com");
+        int userId = Library.findUserByName("ларина").getId();
+        int bookId = Library.findBookByAuthor("пушкин").getFirst().getId();
+        Library.loan(bookId, userId);
+        Library.returnBook(bookId,userId);
+        Assertions.assertEquals(0, Library.findUserById(userId).getCurrentLoans().size());
+    }
+
+    @Test
+    void testReturnBookThrows() throws UserAlreadyExistsException, UserNotFoundException, BookNotFoundException {
+        Library.addBook("евгений онегин", "пушкин", 1833, 2);
+        Library.addUser("ларина", "larina@pushkin.com");
+        int userId = Library.findUserByName("ларина").getId();
+        int bookId = Library.findBookByAuthor("пушкин").getFirst().getId();
+        Assertions.assertThrows(LoanNotFoundException.class, () -> Library.returnBook(bookId,userId));
+    }
+
+    @Test
+    void testgetLoansSuccess() throws UserAlreadyExistsException, UserNotFoundException, LoanExceedException,
+            BookLoanToUserException, BookNotFoundException, BookNotAvailableCopiesException, LoanNotFoundException {
+        Library.addBook("евгений онегин", "пушкин", 1833, 2);
+        Library.addUser("ларина", "larina@pushkin.com");
+        Library.addUser("онегин", "onegin@pushkin.com");
+        int userId1 = Library.findUserByName("ларина").getId();
+        int userId2 = Library.findUserByName("онегин").getId();
+        int bookId = Library.findBookByAuthor("пушкин").getFirst().getId();
+        Library.loan(bookId, userId1);
+        Library.loan(bookId, userId2);
+        Assertions.assertEquals(2, Library.getLoans().size());
+        Assertions.assertEquals(1, Library.getLoans(bookId,userId1).size());
+        Assertions.assertEquals(1, Library.getLoans(-1,userId1).size());
+        Assertions.assertEquals(2, Library.getLoans(bookId,-1).size());
+        Assertions.assertEquals(2, Library.getLoans(-1,-1).size());
+    }
+
+    @Test
+    void testgetLoansThrow() throws UserAlreadyExistsException, UserNotFoundException, LoanExceedException,
+            BookLoanToUserException, BookNotFoundException, BookNotAvailableCopiesException, LoanNotFoundException {
+        Library.addBook("евгений онегин", "пушкин", 1833, 2);
+        Library.addUser("ларина", "larina@pushkin.com");
+        Library.addUser("онегин", "onegin@pushkin.com");
+        int userId1 = Library.findUserByName("ларина").getId();
+        int userId2 = Library.findUserByName("онегин").getId();
+        int bookId = Library.findBookByAuthor("пушкин").getFirst().getId();
+        Library.loan(bookId, userId1);
+        Assertions.assertThrows(LoanNotFoundException.class, () -> Library.getLoans(2,-1));
+        Assertions.assertThrows(LoanNotFoundException.class, () -> Library.getLoans(bookId,userId2));
+        Assertions.assertThrows(LoanNotFoundException.class, () -> Library.getLoans(-10,5));
     }
 
 }
